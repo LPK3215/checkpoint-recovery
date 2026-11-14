@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>checkpoint-recovery · 断点恢复观测台</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --panel: #ffffff; --line: #e3e6ea;
+    --ink: #1f2329; --ink-2: #5c6370; --accent: #2563eb; --accent-soft: #eff4ff;
+    --ok: #15803d; --warn: #b45309; --bad: #b91c1c;
+    --mono: ui-monospace, Consolas, "Courier New", monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font: 14px/1.6 -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+         background: var(--bg); color: var(--ink); height: 100vh; display: flex; flex-direction: column; }
+  header { display: flex; align-items: center; gap: 12px; padding: 10px 18px;
+           background: var(--panel); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  header h1 { font-size: 16px; }
+  header .sub { color: var(--ink-2); font-size: 12px; }
+  header .spacer { flex: 1; }
+  header label { font-size: 12px; color: var(--ink-2); }
+  select { padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; font-size: 13px; }
+  button { padding: 7px 14px; border: none; border-radius: 8px; background: var(--accent);
+           color: #fff; cursor: pointer; font-size: 13px; }
+  button.ghost { background: #fff; color: var(--ink); border: 1px solid var(--line); }
+  button:disabled { opacity: .5; cursor: default; }
+  main { flex: 1; display: grid; grid-template-columns: minmax(440px, 1.5fr) minmax(380px, 1fr);
+         gap: 12px; padding: 12px; overflow: hidden; }
+  .col { display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+          display: flex; flex-direction: column; min-height: 0; }
+  .card h2 { font-size: 13px; padding: 10px 14px; border-bottom: 1px solid var(--line);
+             color: var(--ink-2); font-weight: 600; }
+  #stats { padding: 10px 14px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .stat { background: var(--accent-soft); border-radius: 8px; padding: 8px 10px; }
+  .stat .n { font-size: 20px; font-weight: 700; }
+  .stat .t { font-size: 12px; color: var(--ink-2); }
+  .stat.good .n { color: var(--ok); }
+  .stat.bad .n { color: var(--bad); }
+  #timeline { flex: 1; overflow-y: auto; padding: 10px 14px; font-family: var(--mono);
+              font-size: 12px; display: flex; flex-direction: column; gap: 4px; }
+  .ev { display: flex; gap: 10px; padding: 3px 0; border-bottom: 1px dashed var(--line); }
+  .ev .b { min-width: 64px; color: var(--ink-2); }
+  .ev.batch_start { color: var(--accent); }
+  .ev.worker_exit .b, .ev.worker_exit .x { color: var(--bad); }
+  .ev.metrics { color: var(--ok); font-weight: 600; }
+  .ev.error { color: var(--bad); }
+  .ev .x { white-space: pre-wrap; word-break: break-all; }
+  #statebox { flex: 1; overflow-y: auto; padding: 8px 14px; font-family: var(--mono);
+              font-size: 12px; max-height: 46%; }
+  #statebox table { width: 100%; border-collapse: collapse; }
+  #statebox td, #statebox th { text-align: left; padding: 3px 6px; border-bottom: 1px dashed var(--line); }
+  #statebox th { color: var(--ink-2); font-weight: 600; }
+  .ok { color: var(--ok); }
+  .warn { color: var(--warn); }
+  .bad { color: var(--bad); }
+  footer { padding: 6px 18px; color: var(--ink-2); font-size: 12px; border-top: 1px solid var(--line);
+           background: var(--panel); display: flex; gap: 16px; flex-wrap: wrap; }
+  code { background: var(--accent-soft); padding: 1px 5px; border-radius: 4px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>checkpoint-recovery · 断点恢复观测台</h1>
+  <span class="sub">检查点管「从哪续」，幂等管「不重复写」</span>
+  <span class="spacer"></span>
+  <label>模式</label>
+  <select id="mode">
+    <option value="enhanced">enhanced（检查点 + 幂等）</option>
+    <option value="baseline">baseline（无检查点 + 无幂等）</option>
+  </select>
+  <label>场景</label>
+  <select id="scenario">
+    <option value="clean">clean（无故障）</option>
+    <option value="raise">raise@dedupe_merge（处理错误）</option>
+    <option value="write_fail">write_fail@notify（外写超时）</option>
+    <option value="crash" selected>crash@write_report（写后硬杀）</option>
+  </select>
+  <label><input type="checkbox" id="llm"> 走 LLM 摘要</label>
+  <button id="run">运行</button>
+  <button id="clear" class="ghost">清空</button>
+</header>
+
+<main>
+  <div class="col">
+    <div class="card">
+      <h2>指标</h2>
+      <div id="stats">
+        <div class="stat" id="s-recovered"><div class="n">-</div><div class="t">恢复</div></div>
+        <div class="stat" id="s-redone"><div class="n">-</div><div class="t">重做步骤/5</div></div>
+        <div class="stat" id="s-writes"><div class="n">-</div><div class="t">外部写/2</div></div>
+        <div class="stat" id="s-dup"><div class="n">-</div><div class="t">重复副作用</div></div>
+        <div class="stat" id="s-intercept"><div class="n">-</div><div class="t">幂等拦截</div></div>
+        <div class="stat" id="s-elapsed"><div class="n">-</div><div class="t">耗时 ms</div></div>
+      </div>
+    </div>
+    <div class="card" style="flex:1">
+      <h2>时间线（SSE）</h2>
+      <div id="timeline"><div class="ev"><span class="b">idle</span><span class="x">选模式与场景，点「运行」。crash 场景会真杀进程，恢复由新进程续跑。</span></div></div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="card" style="flex:1">
+      <h2>库状态（每 600ms 刷新）</h2>
+      <div id="statebox"><table>
+        <tr><th>批次</th><th>节点</th><th>时间</th></tr>
+        <tr><td colspan="3" style="color:var(--ink-2)">尚无运行</td></tr>
+      </table></div>
+    </div>
+    <div class="card">
+      <h2>外部系统写 / 幂等拦截 / 检查点</h2>
+      <div id="statebox2" style="max-height:220px"><table>
+        <tr><th>外部写</th><th>时间</th></tr>
+        <tr><td colspan="2" style="color:var(--ink-2)">尚无</td></tr>
+      </table></div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <span>thread: <code id="thread">-</code></span>
+  <span>run: <code id="runid">-</code></span>
+  <span>提示：crash 场景下 <code>exit_code=9</code> = 进程被硬杀（写已成功）；恢复批次是否重发看「外部写」行数。</span>
+</footer>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let timer = null;
+
+function esc(s) { const d = document.createElement('div'); d.textContent = s ?? ''; return d.innerHTML; }
+
+function evLine(kind, data) {
+  const t = $('timeline');
+  if (t.querySelector('.ev .b') && t.querySelector('.ev .b').textContent === 'idle') t.innerHTML = '';
+  const div = document.createElement('div');
+  div.className = 'ev ' + kind;
+  let x = '';
+  if (kind === 'batch_start') {
+    x = `batch ${data.batch} 开始${data.cross_process ? '（跨进程）' : ''}${data.recover ? ' · 恢复' : ''}`;
+    if (data.thread_id) { $('thread').textContent = data.thread_id; $('runid').textContent = data.run_id; }
+  } else if (kind === 'node') {
+    x = `✓ ${data.node}`;
+  } else if (kind === 'batch_end') {
+    x = `batch ${data.batch} 结束${data.failed ? ' · 失败 (' + esc(data.error) + ')' : ''}`;
+  } else if (kind === 'worker_exit') {
+    x = `${data.phase} 进程退出 exit=${data.exit_code}` +
+        (data.payload ? ` ok=${data.payload.ok} steps=${(data.payload.done_steps || []).join('>')}` : '（无 JSON，被硬杀）');
+  } else if (kind === 'metrics') {
+    x = `恢复=${data.recovered} 重做=${data.redone_steps}/${data.total_steps} 外部写=${data.external_writes} 重复=${data.dup_side_effects} 拦截=${data.intercepted_dups} ${data.elapsed_ms}ms`;
+    renderMetrics(data);
+  } else {
+    x = esc(JSON.stringify(data));
+  }
+  div.innerHTML = `<span class="b">${esc(kind)}</span><span class="x">${x}</span>`;
+  t.appendChild(div);
+  t.scrollTop = t.scrollHeight;
+}
+
+function renderMetrics(m) {
+  const set = (id, v, cls) => { const el = $(id); el.querySelector('.n').textContent = v; el.className = 'stat ' + (cls || ''); };
+  set('s-recovered', m.recovered ? '✓' : '✗', m.recovered ? 'good' : 'bad');
+  set('s-redone', `${m.redone_steps}/${m.total_steps}`, m.redone_steps > 2 ? 'bad' : 'good');
+  set('s-writes', `${m.external_writes}/${m.expected_writes}`, m.external_writes > m.expected_writes ? 'bad' : '');
+  set('s-dup', m.dup_side_effects, m.dup_side_effects > 0 ? 'bad' : 'good');
+  set('s-intercept', m.intercepted_dups, m.intercepted_dups > 0 ? 'good' : '');
+  set('s-elapsed', m.elapsed_ms, '');
+}
+
+async function refreshState() {
+  try {
+    const r = await fetch('/api/state').then(r => r.json());
+    if (!r.run_id) return;
+    let rows = r.node_runs.map(x =>
+      `<tr><td>${x.batch}</td><td>${esc(x.node)}</td><td>${esc(x.at)}</td></tr>`).join('');
+    if (!rows) rows = '<tr><td colspan="3" style="color:var(--ink-2)">尚无</td></tr>';
+    $('statebox').innerHTML = `<table><tr><th>批次</th><th>节点</th><th>时间</th></tr>${rows}</table>`;
+    let wrows = r.external_writes.map(x =>
+      `<tr><td>${esc(x.node)}::${esc(x.op)}</td><td>${esc(x.at)}</td></tr>`).join('');
+    if (!wrows) wrows = '<tr><td colspan="2" style="color:var(--ink-2)">尚无</td></tr>';
+    let drows = r.dup_blocks.map(x =>
+      `<tr><td>${esc(x.node)}（被拦）</td><td>${esc(x.at)}</td></tr>`).join('');
+    if (drows) wrows += drows;
+    wrows += `<tr><td><b>检查点快照</b></td><td><b>${r.checkpoints ?? '-'}</b></td></tr>`;
+    $('statebox2').innerHTML = `<table><tr><th>外部写 / 拦截</th><th>时间</th></tr>${wrows}</table>`;
+  } catch (e) { /* 服务端未运行 */ }
+}
+
+$('run').onclick = async () => {
+  $('run').disabled = true;
+  $('timeline').innerHTML = '';
+  try {
+    const resp = await fetch('/api/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode: $('mode').value, scenario: $('scenario').value, llm: $('llm').checked }),
+    });
+    const reader = resp.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      let i;
+      while ((i = buf.indexOf('\n\n')) >= 0) {
+        const chunk = buf.slice(0, i); buf = buf.slice(i + 2);
+        const kind = (chunk.match(/^event: (.+)$/m) || [])[1];
+        const data = JSON.parse(((chunk.match(/^data: (.+)$/m) || [])[1]) || '{}');
+        if (kind) evLine(kind, data);
+      }
+    }
+  } catch (e) {
+    evLine('error', { error: String(e) });
+  } finally {
+    $('run').disabled = false;
+  }
+};
+
+$('clear').onclick = () => {
+  $('timeline').innerHTML = '<div class="ev"><span class="b">idle</span><span class="x">已清空。</span></div>';
+};
+
+timer = setInterval(refreshState, 600);
+refreshState();
+</script>
+</body>
+</html>

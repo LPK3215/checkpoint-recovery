@@ -1,0 +1,646 @@
+{
+  "experiment": "D11 长任务断点恢复对照",
+  "repeats": 3,
+  "modes": [
+    "baseline",
+    "enhanced"
+  ],
+  "scenarios": [
+    {
+      "name": "clean",
+      "faults": null
+    },
+    {
+      "name": "raise@dedupe_merge",
+      "faults": {
+        "raise": "dedupe_merge"
+      }
+    },
+    {
+      "name": "write_fail@notify",
+      "faults": {
+        "write_fail": "notify_stakeholders"
+      }
+    },
+    {
+      "name": "crash@write_report",
+      "faults": {
+        "crash": "write_report"
+      }
+    }
+  ],
+  "rows": [
+    {
+      "mode": "baseline",
+      "scenario": "clean",
+      "faults": null,
+      "run_id": "run-d796aa1cea",
+      "recovered": true,
+      "done_steps": [
+        "fetch_sources",
+        "extract_facts",
+        "dedupe_merge",
+        "write_report",
+        "notify_stakeholders"
+      ],
+      "total_steps": 5,
+      "redone_steps": 0,
+      "external_writes": 2,
+      "expected_writes": 2,
+      "dup_side_effects": 0,
+      "intercepted_dups": 0,
+      "elapsed_ms": 14,
+      "failed_first": false,
+      "resumed_from": null,
+      "error": null
+    },
+    {
+      "mode": "baseline",
+      "scenario": "clean",
+      "faults": null,
+      "run_id": "run-b99a8d869a",
+      "recovered": true,
+      "done_steps": [
+        "fetch_sources",
+        "extract_facts",
+        "dedupe_merge",
+        "write_report",
+        "notify_stakeholders"
+      ],
+      "total_steps": 5,
+      "redone_steps": 0,
+      "external_writes": 2,
+      "expected_writes": 2,
+      "dup_side_effects": 0,
+      "intercepted_dups": 0,
+      "elapsed_ms": 9,
+      "failed_first": false,
+      "resumed_from": null,
+      "error": null
+    },
+    {
+      "mode": "baseline",
+      "scenario": "clean",
+      "faults": null,
+      "run_id": "run-ff9578f5b4",
+      "recovered": true,
+      "done_steps": [
+        "fetch_sources",
+        "extract_facts",
+        "dedupe_merge",
+        "write_report",
+        "notify_stakeholders"
+      ],
+      "total_steps": 5,
+      "redone_steps": 0,
+      "external_writes": 2,
+      "expected_writes": 2,
+      "dup_side_effects": 0,
+      "intercepted_dups": 0,
+      "elapsed_ms": 9,
+      "failed_first": false,
+      "resumed_from": null,
+      "error": null
+    },
+    {
+      "mode": "baseline",
+      "scenario": "raise@dedupe_merge",
+      "faults": {
+        "raise": "dedupe_merge"
+      },
+      "run_id": "run-6b04f446c7",
+      "recovered": true,
+      "done_steps": [
+        "fetch_sources",
+        "extract_facts",
+        "dedupe_merge",
+        "write_report",
+        "notify_stakeholders"
+      ],
+      "total_steps": 5,
+      "redone_steps": 5,
+      "external_writes": 2,
+      "expected_writes": 2,
+      "dup_side_effects": 0,
+      "intercepted_dups": 0,
+      "elapsed_ms": 14,
+      "failed_first": true,
+      "resumed_from": null,
+      "error": "RuntimeError('注入故障：dedupe_merge 节点处理失败')"
+    },
+    {
+      "mode": "baseline",
+      "scenario": "raise@dedupe_merge",
+      "faults": {
+        "raise": "dedupe_merge"
+      },
+      "run_id": "run-18ef000751",
+      "recovered": true,
+      "done_steps": [
+        "fetch_sources",
+        "extract_facts",
+        "dedupe_merge",
+        "write_report",
+        "notify_stakeholders"
+      ],
+      "total_steps": 5,
+      "redone_steps": 5,
+      "external_writes": 2,
+      "expected_writes": 2,
+      "dup_side_effects": 0,
+      "intercepted_dups": 0,
+      "elapsed_ms": 15,
+      "failed_first": true,
+      "resumed_from": null,
+      "error": "RuntimeError('注入故障：dedupe_merge 节点处理失败')"
+    },
+    {
+      "mode": "baseline",
+      "scenario": "raise@dedupe_merge",
+      "faults": {
+        "raise": "dedupe_merge"
+      },
+      "run_id": "run-6d59aadadf",
+      "recovered": true,
+      "done_steps": [
+        "fetch_sources",
+        "extract_facts",
+        "dedupe_merge",
+        "write_report",
+        "notify_stakeholders"
+      ],
+      "total_steps": 5,
+      "redone_steps": 5,
+      "external_writes": 2,
+      "expected_writes": 2,
+      "dup_side_effects": 0,
+      "intercepted_dups": 0,
+      "elapsed_ms": 15,
+      "failed_first": true,
+      "resumed_from": null,
+      "error": "RuntimeError('注入故障：dedupe_merge 节点处理失败')"
+    },
+    {
+      "mode": "baseline",
+      "scenario": "write_fail@notify",
+      "faults": {
+        "write_fail": "notify_stakeholders"
+      },
+      "run_id": "run-7f68a5fc27",
+      "recovered": true,
+      "done_steps": [
+        "fetch_sources",
+        "extract_facts",
+        "dedupe_merge",
+        "write_report",
+        "notify_stakeholders"
+      ],
+      "total_steps": 5,
+      "redone_steps": 5,
+      "external_writes": 3,
+      "expected_writes": 2,
+      "dup_side_effects": 1,
+      "intercepted_dups": 0,
+      "elapsed_ms": 16,
+      "failed_first": true,
+      "resumed_from": null,
+      "error": "TimeoutError('注入故障：notify_stakeholders 外部写超时')"
+    },
+    {
+      "mode": "baseline",
+      "scenario": "write_fail@notify",
+      "faults": {
+        "write_fail": "notify_stakeholders"
+      },
+      "run_id": "run-f1967ea782",
+      "recovered": true,
+      "done_steps": [
+        "fetch_sources",
+        "extract_facts",
+        "dedupe_merge",
+        "write_report",
+        "notify_stakeholders"
+      ],
+      "total_steps": 5,
+      "redone_steps": 5,
+      "external_writes": 3,
+      "expected_writes": 2,
+      "dup_side_effects": 1,
+      "intercepted_dups": 0,
+      "elapsed_ms": 17,
+      "failed_first": true,
+      "resumed_from": null,
+      "error": "TimeoutError('注入故障：notify_stakeholders 外部写超时')"
+    },
+    {
+      "mode": "baseline",
+      "scenario": "write_fail@notify",
+      "faults": {
+        "write_fail": "notify_stakeholders"
+      },
+      "run_id": "run-6bd2467273",
+      "recovered": true,
+      "done_steps": [
+        "fetch_sources",
+        "extract_facts",
+        "dedupe_merge",
+        "write_report",
+        "notify_stakeholders"
+      ],
+      "total_steps": 5,
+      "redone_steps": 5,
+      "external_writes": 3,
+      "expected_writes": 2,
+      "dup_side_effects": 1,
+      "intercepted_dups": 0,
+      "elapsed_ms": 16,
+      "failed_first": true,
+      "resumed_from": null,
+      "error": "TimeoutError('注入故障：notify_stakeholders 外部写超时')"
+    },
+    {
+      "mode": "baseline",
+      "scenario": "crash@write_report",
+      "faults": {
+        "crash": "write_report"
+      },
+      "run_id": "run-8cb7e5ae79",
+      "recovered": true,
+      "done_steps": [
+        "fetch_sources",
+        "extract_facts",
+        "dedupe_merge",
+        "write_report",
+        "notify_stakeholders"
+      ],
+      "total_steps": 5,
+      "redone_steps": 5,
+      "external_writes": 3,
+      "expected_writes": 2,
+      "dup_side_effects": 1,
+      "intercepted_dups": 0,
+      "elapsed_ms": 3963,
+      "failed_first": true,
+      "resumed_from": null,
+      "error": null
+    },
+    {
+      "mode": "baseline",
+      "scenario": "crash@write_report",
+      "faults": {
+        "crash": "write_report"
+      },
+      "run_id": "run-a40649cb42",
+      "recovered": true,
+      "done_steps": [
+        "fetch_sources",
+        "extract_facts",
+        "dedupe_merge",
+        "write_report",
+        "notify_stakeholders"
+      ],
+      "total_steps": 5,
+      "redone_steps": 5,
+      "external_writes": 3,
+      "expected_writes": 2,
+      "dup_side_effects": 1,
+      "intercepted_dups": 0,
+      "elapsed_ms": 4258,
+      "failed_first": true,
+      "resumed_from": null,
+      "error": null
+    },
+    {
+      "mode": "baseline",
+      "scenario": "crash@write_report",
+      "faults": {
+        "crash": "write_report"
+      },
+      "run_id": "run-9e597df5af",
+      "recovered": true,
+      "done_steps": [
+        "fetch_sources",
+        "extract_facts",
+        "dedupe_merge",
+        "write_report",
+        "notify_stakeholders"
+      ],
+      "total_steps": 5,
+      "redone_steps": 5,
+      "external_writes": 3,
+      "expected_writes": 2,
+      "dup_side_effects": 1,
+      "intercepted_dups": 0,
+      "elapsed_ms": 4211,
+      "failed_first": true,
+      "resumed_from": null,
+      "error": null
+    },
+    {
+      "mode": "enhanced",
+      "scenario": "clean",
+      "faults": null,
+      "run_id": "run-a2cebfdfee",
+      "recovered": true,
+      "done_steps": [
+        "fetch_sources",
+        "extract_facts",
+        "dedupe_merge",
+        "write_report",
+        "notify_stakeholders"
+      ],
+      "total_steps": 5,
+      "redone_steps": 0,
+      "external_writes": 2,
+      "expected_writes": 2,
+      "dup_side_effects": 0,
+      "intercepted_dups": 0,
+      "elapsed_ms": 35,
+      "failed_first": false,
+      "resumed_from": null,
+      "error": null
+    },
+    {
+      "mode": "enhanced",
+      "scenario": "clean",
+      "faults": null,
+      "run_id": "run-dee0ae681d",
+      "recovered": true,
+      "done_steps": [
+        "fetch_sources",
+        "extract_facts",
+        "dedupe_merge",
+        "write_report",
+        "notify_stakeholders"
+      ],
+      "total_steps": 5,
+      "redone_steps": 0,
+      "external_writes": 2,
+      "expected_writes": 2,
+      "dup_side_effects": 0,
+      "intercepted_dups": 0,
+      "elapsed_ms": 33,
+      "failed_first": false,
+      "resumed_from": null,
+      "error": null
+    },
+    {
+      "mode": "enhanced",
+      "scenario": "clean",
+      "faults": null,
+      "run_id": "run-c99b343df3",
+      "recovered": true,
+      "done_steps": [
+        "fetch_sources",
+        "extract_facts",
+        "dedupe_merge",
+        "write_report",
+        "notify_stakeholders"
+      ],
+      "total_steps": 5,
+      "redone_steps": 0,
+      "external_writes": 2,
+      "expected_writes": 2,
+      "dup_side_effects": 0,
+      "intercepted_dups": 0,
+      "elapsed_ms": 35,
+      "failed_first": false,
+      "resumed_from": null,
+      "error": null
+    },
+    {
+      "mode": "enhanced",
+      "scenario": "raise@dedupe_merge",
+      "faults": {
+        "raise": "dedupe_merge"
+      },
+      "run_id": "run-84f32eeca5",
+      "recovered": true,
+      "done_steps": [
+        "fetch_sources",
+        "extract_facts",
+        "dedupe_merge",
+        "write_report",
+        "notify_stakeholders"
+      ],
+      "total_steps": 5,
+      "redone_steps": 3,
+      "external_writes": 2,
+      "expected_writes": 2,
+      "dup_side_effects": 0,
+      "intercepted_dups": 0,
+      "elapsed_ms": 45,
+      "failed_first": true,
+      "resumed_from": null,
+      "error": "RuntimeError('注入故障：dedupe_merge 节点处理失败')"
+    },
+    {
+      "mode": "enhanced",
+      "scenario": "raise@dedupe_merge",
+      "faults": {
+        "raise": "dedupe_merge"
+      },
+      "run_id": "run-e2c79da1e9",
+      "recovered": true,
+      "done_steps": [
+        "fetch_sources",
+        "extract_facts",
+        "dedupe_merge",
+        "write_report",
+        "notify_stakeholders"
+      ],
+      "total_steps": 5,
+      "redone_steps": 3,
+      "external_writes": 2,
+      "expected_writes": 2,
+      "dup_side_effects": 0,
+      "intercepted_dups": 0,
+      "elapsed_ms": 64,
+      "failed_first": true,
+      "resumed_from": null,
+      "error": "RuntimeError('注入故障：dedupe_merge 节点处理失败')"
+    },
+    {
+      "mode": "enhanced",
+      "scenario": "raise@dedupe_merge",
+      "faults": {
+        "raise": "dedupe_merge"
+      },
+      "run_id": "run-3b7782748c",
+      "recovered": true,
+      "done_steps": [
+        "fetch_sources",
+        "extract_facts",
+        "dedupe_merge",
+        "write_report",
+        "notify_stakeholders"
+      ],
+      "total_steps": 5,
+      "redone_steps": 3,
+      "external_writes": 2,
+      "expected_writes": 2,
+      "dup_side_effects": 0,
+      "intercepted_dups": 0,
+      "elapsed_ms": 42,
+      "failed_first": true,
+      "resumed_from": null,
+      "error": "RuntimeError('注入故障：dedupe_merge 节点处理失败')"
+    },
+    {
+      "mode": "enhanced",
+      "scenario": "write_fail@notify",
+      "faults": {
+        "write_fail": "notify_stakeholders"
+      },
+      "run_id": "run-e3b0860b83",
+      "recovered": true,
+      "done_steps": [
+        "fetch_sources",
+        "extract_facts",
+        "dedupe_merge",
+        "write_report",
+        "notify_stakeholders"
+      ],
+      "total_steps": 5,
+      "redone_steps": 1,
+      "external_writes": 2,
+      "expected_writes": 2,
+      "dup_side_effects": 0,
+      "intercepted_dups": 0,
+      "elapsed_ms": 45,
+      "failed_first": true,
+      "resumed_from": null,
+      "error": "TimeoutError('注入故障：notify_stakeholders 外部写超时')"
+    },
+    {
+      "mode": "enhanced",
+      "scenario": "write_fail@notify",
+      "faults": {
+        "write_fail": "notify_stakeholders"
+      },
+      "run_id": "run-0ce6b391e3",
+      "recovered": true,
+      "done_steps": [
+        "fetch_sources",
+        "extract_facts",
+        "dedupe_merge",
+        "write_report",
+        "notify_stakeholders"
+      ],
+      "total_steps": 5,
+      "redone_steps": 1,
+      "external_writes": 2,
+      "expected_writes": 2,
+      "dup_side_effects": 0,
+      "intercepted_dups": 0,
+      "elapsed_ms": 42,
+      "failed_first": true,
+      "resumed_from": null,
+      "error": "TimeoutError('注入故障：notify_stakeholders 外部写超时')"
+    },
+    {
+      "mode": "enhanced",
+      "scenario": "write_fail@notify",
+      "faults": {
+        "write_fail": "notify_stakeholders"
+      },
+      "run_id": "run-a0e282f2f4",
+      "recovered": true,
+      "done_steps": [
+        "fetch_sources",
+        "extract_facts",
+        "dedupe_merge",
+        "write_report",
+        "notify_stakeholders"
+      ],
+      "total_steps": 5,
+      "redone_steps": 1,
+      "external_writes": 2,
+      "expected_writes": 2,
+      "dup_side_effects": 0,
+      "intercepted_dups": 0,
+      "elapsed_ms": 43,
+      "failed_first": true,
+      "resumed_from": null,
+      "error": "TimeoutError('注入故障：notify_stakeholders 外部写超时')"
+    },
+    {
+      "mode": "enhanced",
+      "scenario": "crash@write_report",
+      "faults": {
+        "crash": "write_report"
+      },
+      "run_id": "run-c54004d13e",
+      "recovered": true,
+      "done_steps": [
+        "fetch_sources",
+        "extract_facts",
+        "dedupe_merge",
+        "write_report",
+        "notify_stakeholders"
+      ],
+      "total_steps": 5,
+      "redone_steps": 2,
+      "external_writes": 2,
+      "expected_writes": 2,
+      "dup_side_effects": 0,
+      "intercepted_dups": 1,
+      "elapsed_ms": 3743,
+      "failed_first": true,
+      "resumed_from": "checkpoint",
+      "error": null
+    },
+    {
+      "mode": "enhanced",
+      "scenario": "crash@write_report",
+      "faults": {
+        "crash": "write_report"
+      },
+      "run_id": "run-b0ab681818",
+      "recovered": true,
+      "done_steps": [
+        "fetch_sources",
+        "extract_facts",
+        "dedupe_merge",
+        "write_report",
+        "notify_stakeholders"
+      ],
+      "total_steps": 5,
+      "redone_steps": 2,
+      "external_writes": 2,
+      "expected_writes": 2,
+      "dup_side_effects": 0,
+      "intercepted_dups": 1,
+      "elapsed_ms": 4051,
+      "failed_first": true,
+      "resumed_from": "checkpoint",
+      "error": null
+    },
+    {
+      "mode": "enhanced",
+      "scenario": "crash@write_report",
+      "faults": {
+        "crash": "write_report"
+      },
+      "run_id": "run-35b2e9a436",
+      "recovered": true,
+      "done_steps": [
+        "fetch_sources",
+        "extract_facts",
+        "dedupe_merge",
+        "write_report",
+        "notify_stakeholders"
+      ],
+      "total_steps": 5,
+      "redone_steps": 2,
+      "external_writes": 2,
+      "expected_writes": 2,
+      "dup_side_effects": 0,
+      "intercepted_dups": 1,
+      "elapsed_ms": 3879,
+      "failed_first": true,
+      "resumed_from": "checkpoint",
+      "error": null
+    }
+  ]
+}
